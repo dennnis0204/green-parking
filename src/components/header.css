@@ -1,0 +1,15 @@
+header {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  flex-grow: 1;
+  margin: 20px;
+}
+
+.menu {
+  color: white;
+  cursor: pointer;
+  margin: 20px;
+}

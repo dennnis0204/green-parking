@@ -1,0 +1,15 @@
+main {
+  display: flex;
+  padding: 20px;
+}
+
+.content {
+  background-color: lightskyblue;
+  max-width: 50%;
+}
+
+.map {
+  background-color: lightsalmon;
+  height: 100%;
+  width: 50%;
+}
