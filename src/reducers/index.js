@@ -1,4 +1,5 @@
 import { combineReducers } from 'redux';
+import citiesReducer from './citiesReducer';
 
 const pointsReducer = () => {
   return [
@@ -25,6 +26,51 @@ const pointsReducer = () => {
   ];
 };
 
+const userReducer = () => {
+  return {
+    name: null,
+    map: {
+      lastCenter: {
+        latitude: null,
+        longitude: null,
+      },
+    },
+    point: {
+      hasSaved: false,
+      coordinates: {
+        latitude: null,
+        longitude: null,
+      },
+      chargingStation: {
+        power: null,
+        currentType: null,
+      },
+    },
+  };
+};
+
+const initialSearchCityState = {
+  loading: false,
+  results: [],
+  value: '',
+};
+
+const searchCityReducer = (state, action) => {
+  switch (action.type) {
+    case 'CLEAN_QUERY':
+      return initialSearchCityState;
+    case 'START_SEARCH':
+      return { ...state, loading: true, value: action.payload };
+    case 'FINISH_SEARCH':
+      return { ...state, loading: false, results: action.payload };
+    case 'UPDATE_SELECTION':
+      return { ...state, value: action.payload };
+
+    default:
+      return initialSearchCityState;
+  }
+};
+
 const selectedPointReducer = (selectedPoint = null, action) => {
   if (action.type === 'POINT_SELECTED') {
     return action.payload;
@@ -47,7 +93,10 @@ const mapReducer = (map = {}, action) => {
 };
 
 export default combineReducers({
+  cities: citiesReducer,
   points: pointsReducer,
+  user: userReducer,
+  searchCity: searchCityReducer,
   selectedPoint: selectedPointReducer,
   selectedCity: selectedCityReducer,
   map: mapReducer,

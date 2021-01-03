@@ -1,21 +1,24 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import MapGL from 'react-map-gl';
+import React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import MapGL, { FlyToInterpolator } from 'react-map-gl';
 import { selectPoint, setCurrentMap } from '../actions';
 
 const Map = () => {
   const [viewport, setViewport] = useState({
-    latitude: 53.4285,
-    longitude: 14.5528,
-    zoom: 13,
+    latitude: process.env.REACT_APP_BASE_DEFAULT_LATITUDE || 53.4285,
+    longitude: process.env.REACT_APP_BASE_DEFAULT_LONGITUDE || 14.5528,
+    zoom: process.env.REACT_APP_BASE_DEFAULT_ZOOM || 12,
     bearing: 0,
     pitch: 0,
   });
+  const selectedCity = useSelector((state) => state.selectedCity);
   const dispatch = useDispatch();
-  const mapRef = React.useRef(null);
+  const mapRef = useRef(null);
+  const isFirstRun = useRef(true);
 
   useEffect(() => {
+    window.parent.mapRef = mapRef.current.getMap();
     const map = {
       bounds: mapRef.current.getMap().getBounds(),
       center: mapRef.current.getMap().getCenter(),
@@ -23,6 +26,20 @@ const Map = () => {
     };
     dispatch(setCurrentMap(map));
   });
+
+  useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      return;
+    }
+    const { latitude, longitude } = selectedCity;
+    setViewport({
+      ...viewport,
+      latitude,
+      longitude,
+      zoom: process.env.REACT_APP_BASE_DEFAULT_ZOOM || 12,
+    });
+  }, [selectedCity]);
 
   const handleMapClick = ({ lngLat, leftButton }) => {
     if (!leftButton) return;
@@ -38,6 +55,8 @@ const Map = () => {
       onViewportChange={(nextViewport) => {
         return setViewport(nextViewport);
       }}
+      transitionDuration="auto"
+      transitionInterpolator={new FlyToInterpolator({ speed: 0.4 })}
       onClick={handleMapClick}
       ref={mapRef}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}

@@ -1,6 +1,5 @@
 import '../styles/main.css';
 import React from 'react';
-import { Segment } from 'semantic-ui-react';
 
 const Main = () => {
   return (
