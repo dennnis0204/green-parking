@@ -1,8 +1,13 @@
 import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import MapGL, { FlyToInterpolator } from 'react-map-gl';
+import MapGL, {
+  FlyToInterpolator,
+  Marker,
+  NavigationControl,
+} from 'react-map-gl';
 import { selectPoint, setCurrentMap } from '../actions';
+import Pin from './Pin';
 
 const Map = () => {
   const [viewport, setViewport] = useState({
@@ -16,9 +21,30 @@ const Map = () => {
   const dispatch = useDispatch();
   const mapRef = useRef(null);
   const isFirstRun = useRef(true);
+  const [marker, setMarker] = useState({
+    latitude: process.env.REACT_APP_BASE_DEFAULT_LATITUDE || 53.4285,
+    longitude: process.env.REACT_APP_BASE_DEFAULT_LONGITUDE || 14.5528,
+  });
+  const [events, logEvents] = useState({});
+
+  const onMarkerDragStart = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDragStart: event.lngLat }));
+  }, []);
+
+  const onMarkerDrag = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDrag: event.lngLat }));
+  }, []);
+
+  const onMarkerDragEnd = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDragEnd: event.lngLat }));
+    setMarker({
+      longitude: event.lngLat[0],
+      latitude: event.lngLat[1],
+    });
+  }, []);
 
   useEffect(() => {
-    window.parent.mapRef = mapRef.current.getMap();
+    // window.parent.mapRef = mapRef.current.getMap();
     const map = {
       bounds: mapRef.current.getMap().getBounds(),
       center: mapRef.current.getMap().getCenter(),
@@ -60,7 +86,20 @@ const Map = () => {
       onClick={handleMapClick}
       ref={mapRef}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-    />
+    >
+      <Marker
+        longitude={marker.longitude}
+        latitude={marker.latitude}
+        offsetTop={-20}
+        offsetLeft={-10}
+        draggable
+        onDragStart={onMarkerDragStart}
+        onDrag={onMarkerDrag}
+        onDragEnd={onMarkerDragEnd}
+      >
+        <Pin size={20} />
+      </Marker>
+    </MapGL>
   );
 };
 
