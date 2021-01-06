@@ -9,6 +9,12 @@ header {
   color: #ffffff;
 }
 
+.add-point {
+  color: #ffffff;
+  cursor: pointer;
+  margin: 20px;
+}
+
 .menu {
   color: #ffffff;
   cursor: pointer;

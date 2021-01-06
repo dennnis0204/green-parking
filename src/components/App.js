@@ -3,14 +3,12 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import Map from './Map';
-import PointForm from './PointForm';
 
 const App = () => {
   return (
     <React.Fragment>
       <Header />
-      <PointForm />
-      {/* <Map /> */}
+      <Map />
       <Footer />
     </React.Fragment>
   );

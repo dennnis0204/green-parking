@@ -30,7 +30,7 @@ const SearchCity = () => {
         dispatch(finishSearch(_.take(_.filter(cities, isMatch), 5)));
       }, 300);
     },
-    [cities]
+    [cities, dispatch]
   );
 
   useEffect(() => {

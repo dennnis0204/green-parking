@@ -1,15 +1,24 @@
+import '../styles/map.css';
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import MapGL, {
-  FlyToInterpolator,
-  Marker,
-  NavigationControl,
-} from 'react-map-gl';
-import { selectPoint, setCurrentMap } from '../actions';
-import Pin from './Pin';
+import MapGL, { FlyToInterpolator, Marker } from 'react-map-gl';
+import { Icon } from 'semantic-ui-react';
+import { selectPoint } from '../actions';
 
 const Map = () => {
+  // refs
+  const isFirstRun = useRef(true);
+
+  // redux store
+  const dispatch = useDispatch();
+  const selectedCity = useSelector((state) => state.selectedCity);
+  const isAddPointPortalOpen = useSelector(
+    (state) => state.addPoint.isAddPointPortalOpen || false
+  );
+  const userPoint = useSelector((state) => state.user.point);
+
+  // state
   const [viewport, setViewport] = useState({
     latitude: process.env.REACT_APP_BASE_DEFAULT_LATITUDE || 53.4285,
     longitude: process.env.REACT_APP_BASE_DEFAULT_LONGITUDE || 14.5528,
@@ -17,41 +26,25 @@ const Map = () => {
     bearing: 0,
     pitch: 0,
   });
-  const selectedCity = useSelector((state) => state.selectedCity);
-  const dispatch = useDispatch();
-  const mapRef = useRef(null);
-  const isFirstRun = useRef(true);
-  const [marker, setMarker] = useState({
-    latitude: process.env.REACT_APP_BASE_DEFAULT_LATITUDE || 53.4285,
-    longitude: process.env.REACT_APP_BASE_DEFAULT_LONGITUDE || 14.5528,
-  });
-  const [events, logEvents] = useState({});
-
-  const onMarkerDragStart = useCallback((event) => {
-    logEvents((_events) => ({ ..._events, onDragStart: event.lngLat }));
-  }, []);
-
-  const onMarkerDrag = useCallback((event) => {
-    logEvents((_events) => ({ ..._events, onDrag: event.lngLat }));
-  }, []);
-
-  const onMarkerDragEnd = useCallback((event) => {
-    logEvents((_events) => ({ ..._events, onDragEnd: event.lngLat }));
-    setMarker({
-      longitude: event.lngLat[0],
-      latitude: event.lngLat[1],
-    });
-  }, []);
+  const [addPointPin, setAddPointPin] = useState(null);
 
   useEffect(() => {
-    // window.parent.mapRef = mapRef.current.getMap();
-    const map = {
-      bounds: mapRef.current.getMap().getBounds(),
-      center: mapRef.current.getMap().getCenter(),
-      zoom: mapRef.current.getMap().getZoom(),
-    };
-    dispatch(setCurrentMap(map));
-  });
+    if (userPoint.coordinates.latitude) {
+      dispatch(selectPoint(userPoint.coordinates));
+      setAddPointPin(userPoint.coordinates);
+    } else {
+      dispatch(
+        selectPoint({
+          latitude: viewport.latitude,
+          longitude: viewport.longitude,
+        })
+      );
+      setAddPointPin({
+        latitude: viewport.latitude,
+        longitude: viewport.longitude,
+      });
+    }
+  }, [isAddPointPortalOpen]);
 
   useEffect(() => {
     if (isFirstRun.current) {
@@ -67,10 +60,56 @@ const Map = () => {
     });
   }, [selectedCity]);
 
-  const handleMapClick = ({ lngLat, leftButton }) => {
-    if (!leftButton) return;
-    const [longitude, latitude] = lngLat;
+  const onMarkerDragEnd = useCallback((event) => {
+    const [longitude, latitude] = event.lngLat;
+    setAddPointPin({ longitude, latitude });
     dispatch(selectPoint({ longitude, latitude }));
+  }, []);
+
+  // handlers
+  const handleMapClick = ({ lngLat, leftButton }) => {
+    if (!leftButton || !isAddPointPortalOpen) return;
+    const [longitude, latitude] = lngLat;
+    setAddPointPin({ latitude, longitude });
+  };
+
+  // renders
+  const renderAddPointPin = () => {
+    return (
+      isAddPointPortalOpen && (
+        <Marker
+          longitude={addPointPin.longitude}
+          latitude={addPointPin.latitude}
+          offsetTop={-20}
+          offsetLeft={-10}
+          draggable
+          onDragEnd={onMarkerDragEnd}
+        >
+          <Icon name="map pin" size="big" className="pin-marker" />
+        </Marker>
+      )
+    );
+  };
+
+  const renderUserPoint = () => {
+    const { latitude, longitude } = userPoint.coordinates;
+    return (
+      userPoint.hasSaved &&
+      !isAddPointPortalOpen && (
+        <Marker
+          longitude={longitude}
+          latitude={latitude}
+          offsetTop={-20}
+          offsetLeft={-10}
+        >
+          <Icon
+            name="map marker alternate"
+            size="big"
+            className="user-marker"
+          />
+        </Marker>
+      )
+    );
   };
 
   return (
@@ -82,23 +121,13 @@ const Map = () => {
         return setViewport(nextViewport);
       }}
       transitionDuration="auto"
-      transitionInterpolator={new FlyToInterpolator({ speed: 0.4 })}
+      transitionInterpolator={new FlyToInterpolator({ speed: 1.5 })}
       onClick={handleMapClick}
-      ref={mapRef}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+      // mapStyle="mapbox://styles/mapbox/streets-v11"
     >
-      <Marker
-        longitude={marker.longitude}
-        latitude={marker.latitude}
-        offsetTop={-20}
-        offsetLeft={-10}
-        draggable
-        onDragStart={onMarkerDragStart}
-        onDrag={onMarkerDrag}
-        onDragEnd={onMarkerDragEnd}
-      >
-        <Pin size={20} />
-      </Marker>
+      {renderAddPointPin()}
+      {renderUserPoint()}
     </MapGL>
   );
 };

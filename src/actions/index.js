@@ -52,9 +52,16 @@ export const updateSelection = (title) => {
   };
 };
 
-export const setCurrentMap = (map) => {
+export const toogleAddPointPortal = (isAddPointPortalOpen) => {
   return {
-    type: 'SET_CURRENT_MAP',
-    payload: map,
+    type: 'TOOGLE_ADD_POINT_PORTAL',
+    payload: isAddPointPortalOpen,
+  };
+};
+
+export const saveOrUpdateUserPoint = (point) => {
+  return {
+    type: 'SAVE_OR_UPDATE_USER_POINT',
+    payload: point,
   };
 };

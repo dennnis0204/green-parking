@@ -1,4 +1,21 @@
 .point-form {
-  width: 300px;
-  margin: 30px auto;
+  margin: 10px auto 30px auto;
+}
+
+.ui.add-point_button {
+  background-color: #badc58;
+  color: #ffffff;
+  margin-right: 2rem;
+}
+
+.ui.add-point_button:hover {
+  background-color: #9abd34;
+  color: #ffffff;
+}
+
+.ui.pointing.label.add-point_label {
+  border: 1px solid #e0b4b4;
+  color: #9f3a38;
+  margin-top: -1rem;
+  margin-bottom: 1rem;
 }
